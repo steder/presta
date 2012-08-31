@@ -23,9 +23,42 @@ Examples of the kinds of data flow we're attempting to handle include:
 
 _`Amazon MWS`: https://developer.amazonservices.com
 
+Flow Diagram
+===================================
+
+The following diagram shows some potential data flows through and around Presta.
+
+.. graphviz::
+
+  digraph presta_flow {
+    "threadless-python" -> "presta" [label="user profile change"];
+     "presta" -> "presta (periodic)";
+     "presta" -> "cafepress" [label="send orders"];
+     "presta" -> "cafepress" [label="retrieve shipment info"];
+     "presta" -> "uncommon" [label="send orders"];
+     "presta" -> "uncommon" [label="retrieve shipment info"];
+     "presta-periodic" -> "amazon-mws" [label="retrieve reports: settlement, returns, orders"];
+     "presta-periodic" -> "nextopia" [label="update site search index"];
+     "threadless-php" -> "presta" [label="stock level change"];
+     "threadless-php" -> "presta" -> "amazon-mws" [label="new product"];
+     "threadless-php" -> "presta" -> "amazon-mws" [label="product price change"];
+  }
+
 System Diagram
 ===================================
 
-digraph {
-  server1 -> server2
-}
+.. graphviz::
+
+  digraph presta_systems {
+    "threadless-php" -> "presta-api" [label="catalog event"];
+    "threadless-python" -> "presta-api" [label="community event"];
+    "presta-api" -> "mongodb" [label="retrieve job results"];
+    "presta-api" -> "rabbitmq" [label="submit job to queue"]
+    "presta-periodic" -> "rabbitmq" [label="submit scheduled job to queue"];
+    "rabbitmq" -> "celeryd";
+    "celeryd" -> "celery-worker-1" [label="dispatch to workers"];
+    "celery-worker-1" -> "mongodb" [label="store job results"];
+    "celeryd" -> "celery-worker-2" -> "mongodb";
+    "celery-worker-2" -> "Partner Systems";
+    "threadless-api" -> "presta-api" [label="retrieve data for external use"];
+  }
