@@ -1,8 +1,5 @@
 from __future__ import absolute_import
 
-import sys
-print sys.path
-
 from celery import Celery
 
 celery = Celery('presta.celery',

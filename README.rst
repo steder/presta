@@ -44,7 +44,7 @@ do::
 Next up we'll install our Python packages (Again we're assuming you
 have the ability to run ``pip`` without ``sudo``)::
 
-  $ pip install --requirements requirements.txt
+  $ pip install --requirements requirements_dev.txt
 
 Last but not least you'll want to go ahead and configure RabbitMQ::
 
