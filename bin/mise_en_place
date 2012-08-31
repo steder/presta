@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+#-*- mode: ruby -*-
+
+# Setup a development environment
+
+# NOTE: this script assumes you do not need root access to run
+# easy_install, gem or pip.
+
+puts "putting everything in its place..."
+
+# packages for homebrew
+brew_packages = [
+  "graphviz", # just used for building the documentation
+  "mongodb",
+  "rabbitmq"
+]
+
+# packages for apt
+# TODO: figure out all the ubuntu packages we need here:
+apt_packages = [
+    # "graphviz",
+    "rabbitmq-server"
+]
+
+# configuraton for each package manager:
+package_managers = {
+  "brew" => {
+    "install_command" => "brew install %s",
+    "packages" => brew_packages
+  },
+  "apt-get" => {
+    "install_command" => "sudo apt-get install %s",
+    "packages" => apt_packages
+  }
+}
+
+# Configure your development machine assuming that you're using a mac and homebrew
+package_managers.each_pair do |pm_name, pm_config|
+  `which #{pm_name}`
+  if $?.exitstatus == 0
+    pm_config["packages"].each do |package|
+      puts "#{pm_config["install_command"] % [package]}"
+      puts `#{pm_config["install_command"] % [package]}`
+    end
+  end
+end
+
+# Configure RabbitMQ:
+# Configure rabbitmq after installation:
+
+# you may need to set your hostname:
+# on mac os x you can do so with:
+#
+#    $ sudo scutil --set HostName myhost.local
+
+# If you  do need to set your hostname you'll also
+# want to make sure that /etc/hosts has a line like:
+#
+#    127.0.0.1       localhost myhost myhost.local
+
+puts "Settings up RabbitMQ: ..."
+
+commands = [
+  "rabbitmqctl add_user myuser mypassword",
+  "rabbitmqctl add_vhost myvhost",
+  'rabbitmqctl set_permissions -p myvhost myuser ".*" ".*" ".*"'
+]
+
+puts "starting rabbitmq"
+puts `rabbitmq-server -detached`
+
+puts "configuring rabbitmq..."
+commands.each do |command|
+  puts "#{command}"
+  puts `#{command}`
+end
+
+puts "stopping rabbitmq"
+puts `rabbitmqctl stop`
+
+# bundler is a bit like pip, let's use it to install our Gemfile:
+`which bundle` # bundler installs the 'bundle' command
+unless $?.exitstatus == 0
+  puts "Installing bundler"
+  puts `gem install bundler`
+end
+
+puts "Installing Foreman and related dependencies..."
+`bundle install`
+
+`which pip`
+unless $?.exitstatus == 0
+  puts "Installng pip..."
+  puts "easy_install pip"
+end
+
+puts "Installing Python dependencies..."
+# TODO: add --find-links
+`pip install --upgrade --requirement requirements.txt`
+
+puts "happy cooking!"
