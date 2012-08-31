@@ -1,9 +1,14 @@
+from __future__ import absolute_import
+
+import sys
+print sys.path
+
 from celery import Celery
 
-celery = Celery('proj.celery',
+celery = Celery('presta.celery',
                 broker='amqp://',
                 backend='amqp://',
-                include=['celery.tasks'])
+                include=['presta.tasks'])
 
 # Optional configuration, see the application user guide.
 # celery.conf.update(
